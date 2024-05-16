@@ -1,21 +1,17 @@
-import {
-  Controller,
-  Post,
-  Body,
-  UsePipes,
-  ValidationPipe,
-} from '@nestjs/common';
+import { Controller, Get, Param, HttpException } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/User.dto';
+import mongoose from 'mongoose';
 
 @Controller('users')
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
-  @Post('create-user')
-  @UsePipes(new ValidationPipe())
-  createUser(@Body() createUserDto: CreateUserDto) {
-    console.log(createUserDto);
-    return this.usersService.createUser(createUserDto);
+  @Get(':id')
+  async getUserById(@Param('id') id: string) {
+    const isUserIdValid = mongoose.Types.ObjectId.isValid(id);
+    if (!isUserIdValid) throw new HttpException('User not found.', 404);
+    const user = await this.usersService.getUserById(id);
+    if (!user) throw new HttpException('User not found.', 404);
+    return user;
   }
 }
